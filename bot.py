@@ -1,5 +1,6 @@
 import discord
 import cfg
+import random
 
 client = discord.Client()
 
@@ -13,9 +14,16 @@ async def on_ready():
 async def on_message(message):
     if message.author == client.user:
         return
+    
+    if message.content.startswith('+help'):
+        await message.channel.send('+choose ---- Erottele valinnat pilkulla (yks,kaks,kol) \n ei muuta :smiley:')
 
-    if message.content.startswith('+hello'):
-        await message.channel.send('Hello!')
+    if message.content.startswith('+choose '):
+        testi = message.content[8:].split(',')
+        try:
+            await message.channel.send(random.choice(testi))
+        except:
+            await message.channel.send(':flushed:')
     # Wait for esimerkki, tsekkaa api
     # if message.content.startswith('+greet'):
     #     channel = message.channel
