@@ -18,7 +18,7 @@ client = discord.Client()
 @client.event
 async def on_ready():
   print("Logged in")
-  game = discord.Game("with myself")
+  game = discord.Game("with myself | +help")
   await client.change_presence(activity=game)
 
 @client.event
@@ -27,7 +27,7 @@ async def on_message(message):
         return
     
     if message.content.startswith('+help'):
-        await message.channel.send('+choose ---- Erottele valinnat pilkulla (yks,kaks,kol) \n ei muuta :smiley:')
+        await message.channel.send('+choose --- Erottele valinnat pilkulla (yks,kaks,kol) \n +alko --- Laita perään mitä haluut, jotkut synonyymit toimii esim punkku, viina, valkkari yms')
 
     if message.content.startswith('+choose '):
         testi = message.content[8:].split(',')
