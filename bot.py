@@ -1,6 +1,11 @@
 import discord
 import cfg
+import openpyxl
+import warnings
 import random
+
+# #Ignoraa openpyxl style herjan:
+#warnings.simplefilter("ignore")
 
 # Todo:
 # Alko funktionaalisuus jos onnistuu
@@ -30,6 +35,53 @@ async def on_message(message):
             await message.channel.send(random.choice(testi))
         except:
             await message.channel.send(':flushed:')
+    
+    if message.content.startswith('+alko'):
+        wb = openpyxl.load_workbook('prod.xlsx')
+        sheet = wb.get_sheet_by_name('Alkon Hinnasto Tekstitiedostona')
+        alue = sheet['I5':'I15000']
+        user_input = message.content[6:]
+        print(user_input)
+        juoma = user_input
+
+        if user_input == "viini":
+            juoma = random.choice(["punaviinit", "valkoviinit", "Jälkiruokaviinit, väkevöidyt ja muut viinit", "roseeviinit"])
+        elif user_input == "väkevät":
+            juoma = random.choice(["vodkat ja viinat", "Ginit ja maustetut viinat", "Brandyt, Armanjakit ja Calvadosit", "viskit", "konjakit", "rommit"])
+        elif user_input == "mieto" or user_input == "miedot":
+            juoma = random.choice(["oluet", "siiderit", "juomasekoitukset"])
+        elif user_input == "punkku" or user_input == "puna" or user_input == "punaviini":
+            juoma = "punaviinit"
+        elif user_input == "viina" or user_input == "votka" or user_input == "vodka":
+            juoma = "vodkat ja viinat"
+        elif user_input == "valkkari" or user_input == "valko" or user_input =="valkoviini":
+            juoma = "valkoviinit"
+        else:
+            juoma = user_input
+        print(juoma)
+        def find_row(string):
+            rivit = []
+            for row in alue:
+                for cell in row:
+                    if cell.value == juoma:
+                        rivit.append(cell.row)
+            return rivit
+        tulos = find_row(juoma)
+        def product(tulos):
+            rnd = str(random.choice(tulos))
+            tuotenro = sheet['A' + rnd].value
+            tuotenimi = sheet['B' + rnd].value
+            tuotesivu = "https://www.alko.fi/tuotteet/"+ tuotenro
+            return (tuotenimi + "\n" + tuotesivu)
+        await message.channel.send(product(tulos))
+
+
+
+client.run(cfg.token)
+
+
+
+
     # Wait for esimerkki, tsekkaa api
     # if message.content.startswith('+greet'):
     #     channel = message.channel
@@ -40,40 +92,3 @@ async def on_message(message):
 
     #     msg = await client.wait_for('message', check=check)
     #     await channel.send('Hello {.author}!'.format(msg))
-
-client.run(cfg.token)
-
-
-
-# import openpyxl
-# import warnings
-# import random
-# #Ignoraa openpyxl style herjan:
-# warnings.simplefilter("ignore")
-
-# wb = openpyxl.load_workbook('prod.xlsx')
-# sheet = wb.get_sheet_by_name('Alkon Hinnasto Tekstitiedostona')
-# alue = sheet['I5':'I15000']
-
-# # for cell in viinit:
-# #   if cell[0].value == 'punaviinit':
-# #     print(cell[0].value)
-# juoma = 'oluet'
-# def find_row(viini):
-#   #kato tota iter_rows hommaa viel se kai nopeempi jotenki
-#   rivit = []
-#   for row in alue:
-#     for cell in row:
-#       if cell.value == juoma:
-#         rivit.append(cell.row)
-#   return rivit
-
-# tulos = find_row(juoma)
-
-# def product(tulos):
-#   tuotenimi = sheet['B' + str(random.choice(tulos))].value
-#   print(tuotenimi)
-  
-
-
-# product(tulos)
