@@ -1,5 +1,6 @@
 import discord
 import cfg
+import requests
 import openpyxl
 import warnings
 import random
@@ -7,13 +8,28 @@ import random
 # #Ignoraa openpyxl style herjan:
 #warnings.simplefilter("ignore")
 
+
 # Todo:
-# Alko funktionaalisuus jos onnistuu
-#   Hinnasto löytyy excel filuna, päivittyy päivittäin
-#       Botti hakis filun netist ja lukis sielt datan
-#       Tai sit staattinen kerran ladattu filu, joka vois päivittyä botin käynnistykses (varmaa parempi)
+# Alko hinnat
+# Tilausvalikoima pois
+# Sijainti?
 
 client = discord.Client()
+try:
+    res = requests.get('https://www.alko.fi/INTERSHOP/static/WFS/Alko-OnlineShop-Site/-/Alko-OnlineShop/fi_FI/Alkon%20Hinnasto%20Tekstitiedostona/alkon-hinnasto-tekstitiedostona.xlsx')
+    res.raise_for_status()
+    playFile = open('prod.xlsx', 'wb')
+    for chunk in res.iter_content(100000):
+      playFile.write(chunk)
+    playFile.close()
+    print("Excel päivitetty")
+except:
+    print("Excelin päivitys failas")
+
+wb = openpyxl.load_workbook('prod.xlsx')
+sheet = wb.get_sheet_by_name('Alkon Hinnasto Tekstitiedostona')
+
+
 
 @client.event
 async def on_ready():
@@ -37,11 +53,8 @@ async def on_message(message):
             await message.channel.send(':flushed:')
     
     if message.content.startswith('+alko'):
-        wb = openpyxl.load_workbook('prod.xlsx')
-        sheet = wb.get_sheet_by_name('Alkon Hinnasto Tekstitiedostona')
         alue = sheet['I5':'I15000']
         user_input = message.content[6:]
-        print(user_input)
         juoma = user_input
 
         if user_input == "viini":
@@ -58,7 +71,6 @@ async def on_message(message):
             juoma = "valkoviinit"
         else:
             juoma = user_input
-        print(juoma)
         def find_row(string):
             rivit = []
             for row in alue:
@@ -73,7 +85,10 @@ async def on_message(message):
             tuotenimi = sheet['B' + rnd].value
             tuotesivu = "https://www.alko.fi/tuotteet/"+ tuotenro
             return (tuotenimi + "\n" + tuotesivu)
-        await message.channel.send(product(tulos))
+        try:
+            await message.channel.send(product(tulos))
+        except:
+            await message.channel.send(":flushed:")
 
 
 
