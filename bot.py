@@ -11,9 +11,9 @@ import random
 
 # Todo:
 # Alko hinnat
-# Tilausvalikoima pois
 # Sijainti?
-
+# Command: Imitoi / average kommentti == lukee viestihistorian ja muodostaa siitä keskiverto kommentin
+# Iltasaatana
 client = discord.Client()
 try:
     res = requests.get('https://www.alko.fi/INTERSHOP/static/WFS/Alko-OnlineShop-Site/-/Alko-OnlineShop/fi_FI/Alkon%20Hinnasto%20Tekstitiedostona/alkon-hinnasto-tekstitiedostona.xlsx')
@@ -22,14 +22,27 @@ try:
     for chunk in res.iter_content(100000):
       playFile.write(chunk)
     playFile.close()
-    print("Excel päivitetty")
+    print("Excel ladattu")
 except:
-    print("Excelin päivitys failas")
+    print("Excelin lataus failas")
 
+#Excel auki
 wb = openpyxl.load_workbook('prod.xlsx')
 sheet = wb.get_sheet_by_name('Alkon Hinnasto Tekstitiedostona')
+ws2 = wb.create_sheet('New sheet')
 
+def clean_workbook():
+    #Siistii tilausvalikoiman pois taulukosta
+    for row in sheet.values:
+        if row[28] == "tilausvalikoima":
+            continue
+        ws2.append(row)
+    del wb['Alkon Hinnasto Tekstitiedostona']
+    ws2.title = "Otsikko"
+    wb.save('new.xlsx')
+    print("Tilausvalikoima poistettu")
 
+clean_workbook()
 
 @client.event
 async def on_ready():
@@ -53,7 +66,6 @@ async def on_message(message):
             await message.channel.send(':flushed:')
     
     if message.content.startswith('+alko'):
-        alue = sheet['I5':'I15000']
         user_input = message.content[6:]
         juoma = user_input
 
@@ -73,7 +85,7 @@ async def on_message(message):
             juoma = user_input
         def find_row(string):
             rivit = []
-            for row in alue:
+            for row in ws2:
                 for cell in row:
                     if cell.value == juoma:
                         rivit.append(cell.row)
@@ -81,8 +93,8 @@ async def on_message(message):
         tulos = find_row(juoma)
         def product(tulos):
             rnd = str(random.choice(tulos))
-            tuotenro = sheet['A' + rnd].value
-            tuotenimi = sheet['B' + rnd].value
+            tuotenro = ws2['A' + rnd].value
+            tuotenimi = ws2['B' + rnd].value
             tuotesivu = "https://www.alko.fi/tuotteet/"+ tuotenro
             return (tuotenimi + "\n" + tuotesivu)
         try:
