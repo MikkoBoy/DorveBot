@@ -5,7 +5,7 @@ import openpyxl
 import warnings
 import random
 
-# #Ignoraa openpyxl style herjan:
+#Ignoraa openpyxl style herjan:
 #warnings.simplefilter("ignore")
 
 
@@ -15,6 +15,8 @@ import random
 # Command: Imitoi / average kommentti == lukee viestihistorian ja muodostaa siitä keskiverto kommentin
 # Iltasaatana
 client = discord.Client()
+
+#Alkon hinnaston lataaminen
 try:
     res = requests.get('https://www.alko.fi/INTERSHOP/static/WFS/Alko-OnlineShop-Site/-/Alko-OnlineShop/fi_FI/Alkon%20Hinnasto%20Tekstitiedostona/alkon-hinnasto-tekstitiedostona.xlsx')
     res.raise_for_status()
@@ -102,7 +104,8 @@ async def on_message(message):
         except:
             await message.channel.send(":flushed:")
 
-
+    if message.content.startswith('lopetin juomisen') or message.content.startswith('lopetan juomisen') or message.content.startswith('en juo tänää'):
+        await message.channel.send('En usko')
 
 client.run(cfg.token)
 
