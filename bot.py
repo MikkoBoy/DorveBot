@@ -54,58 +54,72 @@ async def on_ready():
 
 @client.event
 async def on_message(message):
+    # Muuttujia
+    juoma = ""
+    # Funktioita
+    # käyttäjän syötteestä juomatyyppi, tän vois siistiä joskus järkevämmäks
+    def get_product_type(str):
+        if str == "viini":
+            product_type = random.choice(["punaviinit", "valkoviinit", "Jälkiruokaviinit, väkevöidyt ja muut viinit", "roseeviinit"])
+        elif str == "väkevät":
+            product_type = random.choice(["vodkat ja viinat", "Ginit ja maustetut viinat", "Brandyt, Armanjakit ja Calvadosit", "viskit", "konjakit", "rommit"])
+        elif str == "mieto" or str == "miedot":
+            product_type = random.choice(["oluet", "siiderit", "juomasekoitukset"])
+        elif str == "punkku" or str == "puna" or str == "punaviini":
+            product_type = "punaviinit"
+        elif str == "viina" or str == "votka" or str == "vodka":
+            product_type = "vodkat ja viinat"
+        elif str == "valkkari" or str == "valko" or str =="valkoviini":
+            product_type = "valkoviinit"
+        else:
+            product_type = str
+        return product_type
+    
+    # Kaikki rivit, joissa käyttäjän haluama juomatyyppi
+    def find_rows():
+        rivit = []
+        for row in ws2:
+            for cell in row:
+                if cell.value == juoma:
+                    rivit.append(cell.row)
+        return rivit
+
+    # Tää ajetaan find_rows():in riveillä, pyöräytetään randomilla arraysta ja vertaillaan se excelin vastaavaan rivinumeroon
+    # Kun rivi on tiedossa se voidaan leipoa linkkiin ja palauttaa viestinä nimen kera
+    def find_product(arr):
+        rnd = str(random.choice(arr))
+        tuotenro = ws2['A' + rnd].value
+        tuotenimi = ws2['B' + rnd].value
+        tuotesivu = "https://www.alko.fi/tuotteet/"+ tuotenro
+        return (tuotenimi + "\n" + tuotesivu)
+
+
+    ######                     ######
+    ######  Message funktiot   ######
+    ######                     ###### 
     if message.author == client.user:
         return
-    
+    # help
     if message.content.startswith('+help'):
         await message.channel.send('+choose --- Erottele valinnat pilkulla (yks,kaks,kol) \n +alko --- Laita perään mitä haluut, jotkut synonyymit toimii esim punkku, viina, valkkari yms')
-
+    # +choose funktio, splittaa messagen pilkuista arrayks, josta randomilla valitaan yks
     if message.content.startswith('+choose '):
-        testi = message.content[8:].split(',')
+        user_choices = message.content[8:].split(',')
         try:
-            await message.channel.send(random.choice(testi))
+            await message.channel.send(random.choice(user_choices))
         except:
             await message.channel.send(':flushed:')
     
+    # Alkon katalogin tonkiminen randomi pullolle
     if message.content.startswith('+alko'):
         user_input = message.content[6:]
-        juoma = user_input
-
-        if user_input == "viini":
-            juoma = random.choice(["punaviinit", "valkoviinit", "Jälkiruokaviinit, väkevöidyt ja muut viinit", "roseeviinit"])
-        elif user_input == "väkevät":
-            juoma = random.choice(["vodkat ja viinat", "Ginit ja maustetut viinat", "Brandyt, Armanjakit ja Calvadosit", "viskit", "konjakit", "rommit"])
-        elif user_input == "mieto" or user_input == "miedot":
-            juoma = random.choice(["oluet", "siiderit", "juomasekoitukset"])
-        elif user_input == "punkku" or user_input == "puna" or user_input == "punaviini":
-            juoma = "punaviinit"
-        elif user_input == "viina" or user_input == "votka" or user_input == "vodka":
-            juoma = "vodkat ja viinat"
-        elif user_input == "valkkari" or user_input == "valko" or user_input =="valkoviini":
-            juoma = "valkoviinit"
-        else:
-            juoma = user_input
-        def find_row(string):
-            rivit = []
-            for row in ws2:
-                for cell in row:
-                    if cell.value == juoma:
-                        rivit.append(cell.row)
-            return rivit
-        tulos = find_row(juoma)
-        def product(tulos):
-            rnd = str(random.choice(tulos))
-            tuotenro = ws2['A' + rnd].value
-            tuotenimi = ws2['B' + rnd].value
-            tuotesivu = "https://www.alko.fi/tuotteet/"+ tuotenro
-            return (tuotenimi + "\n" + tuotesivu)
+        juoma = get_product_type(user_input)
+        juoma_rivit = find_rows()
         try:
-            await message.channel.send(product(tulos))
+            await message.channel.send(find_product(juoma_rivit))
         except:
             await message.channel.send(":flushed:")
 
-    if message.content.startswith('lopetin juomisen') or message.content.startswith('lopetan juomisen') or message.content.startswith('en juo tänää'):
-        await message.channel.send('En usko')
 
 client.run(cfg.token)
 
