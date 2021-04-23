@@ -56,6 +56,7 @@ async def on_ready():
 async def on_message(message):
     # Muuttujia
     juoma = ""
+    properties = []
     # Funktioita
     # käyttäjän syötteestä juomatyyppi, tän vois siistiä joskus järkevämmäks
     def get_product_type(str):
@@ -78,11 +79,27 @@ async def on_message(message):
     # Kaikki rivit, joissa käyttäjän haluama juomatyyppi
     def find_rows():
         rivit = []
+        final_rivit = []
         for row in ws2:
             for cell in row:
                 if cell.value == juoma:
                     rivit.append(cell.row)
-        return rivit
+        # jos on hinta haarukkaa niin nää seuraavat
+        # muussa tapauksessa ylempi rivi palautetaan
+        if len(properties) == 2:
+            for i in range(len(rivit)):
+                rivi_numero = str(rivit[i])
+                if float(ws2['E' + rivi_numero].value) < float(properties[1]):
+                    final_rivit.append(int(rivi_numero))
+            return final_rivit
+        elif len(properties) == 3:
+            for i in range(len(rivit)):
+                rivi_numero = str(rivit[i])
+                if float(ws2['E' + rivi_numero].value) > float(properties[1]) and float(ws2['E' + rivi_numero].value) < float(properties[2]):
+                    final_rivit.append(int(rivi_numero))
+            return final_rivit
+        else:
+            return rivit
 
     # Tää ajetaan find_rows():in riveillä, pyöräytetään randomilla arraysta ja vertaillaan se excelin vastaavaan rivinumeroon
     # Kun rivi on tiedossa se voidaan leipoa linkkiin ja palauttaa viestinä nimen kera
@@ -90,8 +107,10 @@ async def on_message(message):
         rnd = str(random.choice(arr))
         tuotenro = ws2['A' + rnd].value
         tuotenimi = ws2['B' + rnd].value
+        tuotekoko = ws2['D' + rnd].value
+        tuotehinta = ws2['E' + rnd].value
         tuotesivu = "https://www.alko.fi/tuotteet/"+ tuotenro
-        return (tuotenimi + "\n" + tuotesivu)
+        return (tuotenimi + "\n" + tuotekoko + ", "+ tuotehinta + "€" +"\n" + tuotesivu)
 
 
     ######                     ######
@@ -113,7 +132,16 @@ async def on_message(message):
     # Alkon katalogin tonkiminen randomi pullolle
     if message.content.startswith('+alko'):
         user_input = message.content[6:]
-        juoma = get_product_type(user_input)
+        # Tähän vois jatkossa tehä jonku syötteen tarkistuksen, nyt menee tällee
+        if ',' in user_input:
+            properties = user_input[0:].split(',')
+            if '-' in properties[1]:
+                properties += properties[1].split('-')
+                properties.pop(1)
+        else:
+            properties.append(user_input)
+        
+        juoma = get_product_type(properties[0])
         juoma_rivit = find_rows()
         try:
             await message.channel.send(find_product(juoma_rivit))
