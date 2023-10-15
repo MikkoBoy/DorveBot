@@ -5,6 +5,8 @@ import openpyxl
 import warnings
 import random
 
+intents = discord.Intents(messages=True)
+
 #Ignoraa openpyxl style herjan:
 #warnings.simplefilter("ignore")
 
